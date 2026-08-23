@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String
+  users       User[]
+  permissions Permission[]
+}
+
+model Permission {
+  id    Int    @id @default(autoincrement())
+  name  String
+  slug  String @unique
+  roles Role[]
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  first_name String
+  last_name  String
+  birthdate  DateTime? @db.Date
+  email      String    @unique
+  password   String
+  role_id    Int?
+  role       Role?     @relation(fields: [role_id], references: [id])
+  ratings    Rating[]
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String
+  slug     String    @unique
+  products Product[]
+}
+
+model Brand {
+  id       Int       @id @default(autoincrement())
+  name     String
+  slug     String    @unique
+  products Product[]
+}
+
+model Product {
+  id          Int            @id @default(autoincrement())
+  name        String
+  description String?
+  inventory   Int            @default(0)
+  price       String
+  brand_id    Int
+  brand       Brand          @relation(fields: [brand_id], references: [id])
+  category_id Int
+  category    Category       @relation(fields: [category_id], references: [id])
+  ratings     Rating[]
+  purchases   PurchaseItem[]
+}
+
+model Rating {
+  id          Int     @id @default(autoincrement())
+  description String?
+  rate        Int
+  owner_id    Int
+  owner       User    @relation(fields: [owner_id], references: [id])
+  product_id  Int
+  product     Product @relation(fields: [product_id], references: [id])
+}
+
+model Purchase {
+  id       Int            @id @default(autoincrement())
+  total    String         
+  iva      String         
+  products PurchaseItem[]
+}
+
+model PurchaseItem {
+  purchase_id Int
+  purchase    Purchase @relation(fields: [purchase_id], references: [id])
+  product_id  Int
+  product     Product  @relation(fields: [product_id], references: [id])
+  quantity    Int
+
+  @@id([purchase_id, product_id])
+}
